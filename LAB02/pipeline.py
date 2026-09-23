@@ -5,6 +5,7 @@ import pickle
 import random
 import subprocess
 import sys
+from numbers import Real
 from pathlib import Path
 
 from data_loader import DATA_PATH, leggi_csv
@@ -24,13 +25,14 @@ def carica_dati(percorso=DATA_PATH):
     return leggi_csv(percorso, tipi={"f1": float, "f2": float, "label": int})
 
 
-def validate(percorso=DATA_PATH):
+def validate(percorso=DATA_PATH, esegui_test=True):
     try:
-        subprocess.run(
-            [sys.executable, "-m", "pytest", str(BASE_DIR / "tests"), "-q"],
-            cwd=BASE_DIR,
-            check=True,
-        )
+        if esegui_test:
+            subprocess.run(
+                [sys.executable, "-m", "pytest", str(BASE_DIR / "tests"), "-q"],
+                cwd=BASE_DIR,
+                check=True,
+            )
         righe = carica_dati(percorso)
         valori_validi = {riga[TARGET] for riga in righe} <= {0, 1}
         if not valori_validi or len(righe) < 2:
@@ -63,6 +65,7 @@ def sigmoide(valore):
 
 
 def train(seed, percorso_modello, percorso_dati=DATA_PATH):
+    validate(percorso_dati, esegui_test=False)
     righe = list(carica_dati(percorso_dati))
     random.Random(seed).shuffle(righe)
     numero_test = max(1, round(len(righe) * TEST_RATIO))
@@ -103,9 +106,18 @@ def train(seed, percorso_modello, percorso_dati=DATA_PATH):
 
 
 def gate(percorso_modello, soglia):
-    with open(percorso_modello, "rb") as file_modello:
-        modello = pickle.load(file_modello)
-    accuracy = modello["accuracy"]
+    try:
+        with open(percorso_modello, "rb") as file_modello:
+            modello = pickle.load(file_modello)
+        accuracy = modello["accuracy"]
+        if isinstance(accuracy, bool) or not isinstance(accuracy, Real):
+            raise ValueError("accuracy deve essere un numero reale")
+        if not math.isfinite(accuracy):
+            raise ValueError("accuracy deve essere finita")
+    except (FileNotFoundError, KeyError, TypeError, ValueError,
+            pickle.PickleError, EOFError) as errore:
+        print(f"[GATE] FAIL: artefatto modello non valido: {errore}")
+        raise SystemExit(1) from errore
     esito = "PROMOSSO" if accuracy >= soglia else "RESPINTO"
     print(f"[GATE] accuracy={accuracy:.3f} soglia={soglia:.2f} -> {esito}")
     if esito == "RESPINTO":

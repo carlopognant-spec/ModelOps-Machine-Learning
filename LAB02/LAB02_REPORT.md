@@ -6,26 +6,29 @@ La pipeline è composta da questi stadi, eseguiti in ordine:
 
 1. `pytest tests -q`: controlla lo schema del dataset e i valori della target.
 2. `python pipeline.py --stage validate`: esegue i test e verifica che i dati siano caricabili.
-3. `python pipeline.py --stage train`: allena il modello e salva `model.pkl`.
+3. `python pipeline.py --stage train`: verifica nuovamente lo schema dello stesso dataset, poi allena il modello e salva `model.pkl`.
 4. `python pipeline.py --stage gate`: confronta l'accuracy con la soglia numerica.
 
 `run_pipeline.sh` usa `set -euo pipefail`: se uno stadio fallisce, gli stadi successivi non partono. Gli output e gli esiti vengono salvati in `run.log`.
 
 ## Comando e risultato
 
-```bash
-pytest tests/ -q
-python pipeline.py --stage validate
-python pipeline.py --stage train --seed 7 --out model.pkl
-python pipeline.py --stage gate --model model.pkl --threshold 0.75
+```powershell
+python -m pytest LAB02/tests -q
+python LAB02/pipeline.py --stage validate --data LAB02/csv/data.csv
+python LAB02/pipeline.py --stage train --seed 7 --data LAB02/csv/data.csv --out LAB02/model.pkl
+python LAB02/pipeline.py --stage gate --model LAB02/model.pkl --threshold 0.75
 ```
+
+In alternativa, dalla directory `LAB02`, si può usare `bash run_pipeline.sh`. Il comando `python -m pytest LAB02/tests -q` funziona anche dalla root del repository; la directory di lavoro non è quindi implicita.
 
 Risultato della run valida:
 
 ```text
-[TEST] 2 passed
+[TEST] 4 passed
 [VALIDATE] PASS: schema dati verificato
-[TRAIN] accuracy=0.833 model=model.pkl
+[VALIDATE] PASS: schema dati verificato
+[TRAIN] accuracy=0.833 model=LAB02/model.pkl
 [GATE] accuracy=0.833 soglia=0.75 -> PROMOSSO
 ```
 
@@ -45,7 +48,7 @@ La pipeline ha bloccato l'esecuzione con exit code `1` e messaggio:
 [VALIDATE] FAIL: Colonne non presenti nel CSV: ['label']
 ```
 
-Il training non è stato eseguito sul dataset invalido. Il fixture temporaneo è stato cancellato dopo la prova.
+Il training non è stato eseguito sul dataset invalido e nessun modello è stato creato. Anche uno stadio `train` invocato direttamente ripete il controllo dello schema e si interrompe prima della scrittura dell'artefatto. Il fixture temporaneo è stato cancellato dopo la prova.
 
 ## Limiti e fallback
 
@@ -63,3 +66,4 @@ Il training non è stato eseguito sul dataset invalido. Il fixture temporaneo è
 - `run.log` è mantenuto perché fa parte delle evidenze finali.
 - Non risultano processi Python o kernel lasciati attivi.
 - Le cache locali Python e pytest generate durante i test sono state rimosse.
+- La release applicativa non è applicabile: il repository non contiene roadmap, package version o changelog.
