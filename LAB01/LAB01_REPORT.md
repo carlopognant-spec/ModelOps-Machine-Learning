@@ -9,13 +9,6 @@ python train.py --seed 42 --out model_a.pkl
 python train.py --seed 7 --out model_b.pkl
 ```
 
-Il training legge il dataset tramite `DATA_PATH` definito in `data_loader.py` e salva nel pickle:
-
-- `pesi`
-- `bias`
-- `riferimenti`
-- `seed`
-
 ## Run log
 
 | id | dataset | parametri | metrica | path modello |

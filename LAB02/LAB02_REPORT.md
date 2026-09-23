@@ -34,6 +34,31 @@ Risultato della run valida:
 
 Il gate promuove il modello perché `0.833 >= 0.75`.
 
+## Stadi della pipeline
+
+```text
+validate(data.csv)
+  se schema, target e valori sono validi:
+	  PASS -> avvia train
+  altrimenti:
+	  FAIL -> interrompi la pipeline
+
+train(data.csv)
+  esegui solo dopo validate PASS
+  allena il modello e salva model.pkl
+  se model.pkl esiste:
+	  PASS -> avvia gate
+  altrimenti:
+	  FAIL -> interrompi la pipeline
+
+gate(model.pkl, threshold=0.75)
+  esegui solo dopo train PASS e dopo la creazione di model.pkl
+  se accuracy >= 0.75:
+	  PROMOSSO
+  altrimenti:
+	  RESPINTO
+```
+
 ## Fallimento intenzionale
 
 È stato creato temporaneamente un CSV senza la colonna `label` e validato con:
@@ -66,4 +91,3 @@ Il training non è stato eseguito sul dataset invalido e nessun modello è stato
 - `run.log` è mantenuto perché fa parte delle evidenze finali.
 - Non risultano processi Python o kernel lasciati attivi.
 - Le cache locali Python e pytest generate durante i test sono state rimosse.
-- La release applicativa non è applicabile: il repository non contiene roadmap, package version o changelog.
