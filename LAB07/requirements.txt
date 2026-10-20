@@ -1,0 +1,7 @@
+-r ../LAB06/requirements.txt
+shap==0.46.0
+lime==0.2.0.1
+numba==0.60.0
+llvmlite==0.43.0
+pandas==2.2.3
+scikit-image==0.24.0

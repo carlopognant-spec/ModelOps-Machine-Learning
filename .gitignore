@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Artefatti rigenerabili dei nuovi laboratori (conservare localmente per le evidenze)
+/LAB04/artifacts/*.pkl
+/LAB05/artifacts/*.pkl
+/LAB05/artifacts/*.npz
+/LAB06/data/
+/evidenze/
+/.venv-labs/

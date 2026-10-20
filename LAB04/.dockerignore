@@ -1,0 +1,8 @@
+__pycache__/
+.pytest_cache/
+.venv/
+tests/
+*.md
+test_predict.py
+train.py
+build_registry.py

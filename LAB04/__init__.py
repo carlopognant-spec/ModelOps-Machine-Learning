@@ -1,0 +1,1 @@
+"""Serving e registry locale."""
