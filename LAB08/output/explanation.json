@@ -1,0 +1,26 @@
+{
+  "decision": "deny",
+  "confidence_deny": 1.0,
+  "row_index_in_test": 382,
+  "input": {
+    "reddito_dichiarato": 1238.6442753646447,
+    "insolvenze_passate": 1.0,
+    "anni_impiego": 4.293580067763601,
+    "cap_residenza": 19881.438753695307
+  },
+  "shap_contributions": {
+    "reddito_dichiarato": 0.3696453605776668,
+    "insolvenze_passate": 0.05748924530902816,
+    "anni_impiego": 0.028837572864438315,
+    "cap_residenza": 0.04436948791552531
+  },
+  "ranked_features": [
+    "reddito_dichiarato",
+    "insolvenze_passate",
+    "cap_residenza",
+    "anni_impiego"
+  ],
+  "proxy_features_found": [
+    "cap_residenza"
+  ]
+}

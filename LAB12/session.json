@@ -1,0 +1,11 @@
+{
+  "tracking_uri": "sqlite:///C:/Users/carlo/Desktop/ModelOps-Machine-Learning/LAB12/mlflow.db",
+  "experiment_id": "1",
+  "run_ids": [
+    "b3132c5b84bb42e4890d9f52b44a7156",
+    "b2b626d00af44a4fb9ee2050c998ab4a",
+    "fb2aa11e2e4d457db3ef1cf56b57deb4",
+    "9f527a745eef44c780dc17ff808c1786"
+  ],
+  "data_path": "C:\\Users\\carlo\\Desktop\\ModelOps-Machine-Learning\\LAB12\\data\\12_dataset_tracking_vini.csv"
+}

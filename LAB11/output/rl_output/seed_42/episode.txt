@@ -1,0 +1,49 @@
+render_mode=ansi, seed=10000, delay=0.5
+initial_state=0
+
+[41mS[0mFFF
+FHFH
+FFFH
+HFFG
+
+action=2, state=1, reward=0, terminated=False, truncated=False
+  (Right)
+S[41mF[0mFF
+FHFH
+FFFH
+HFFG
+
+action=2, state=2, reward=0, terminated=False, truncated=False
+  (Right)
+SF[41mF[0mF
+FHFH
+FFFH
+HFFG
+
+action=1, state=6, reward=0, terminated=False, truncated=False
+  (Down)
+SFFF
+FH[41mF[0mH
+FFFH
+HFFG
+
+action=1, state=10, reward=0, terminated=False, truncated=False
+  (Down)
+SFFF
+FHFH
+FF[41mF[0mH
+HFFG
+
+action=1, state=14, reward=0, terminated=False, truncated=False
+  (Down)
+SFFF
+FHFH
+FFFH
+HF[41mF[0mG
+
+action=2, state=15, reward=1, terminated=True, truncated=False
+  (Right)
+SFFF
+FHFH
+FFFH
+HFF[41mG[0m

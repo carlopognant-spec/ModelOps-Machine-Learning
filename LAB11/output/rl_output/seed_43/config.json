@@ -1,0 +1,36 @@
+{
+  "environment": "FrozenLake-v1",
+  "map": [
+    "SFFF",
+    "FHFH",
+    "FFFH",
+    "HFFG"
+  ],
+  "is_slippery": false,
+  "max_episode_steps": 100,
+  "seed": 43,
+  "episodes": 6000,
+  "alpha": 0.1,
+  "gamma": 0.99,
+  "epsilon_start": 1.0,
+  "epsilon_min": 0.05,
+  "epsilon_decay_episodes": 4200.0,
+  "gymnasium": "1.4.0",
+  "numpy": "1.26.4",
+  "nonzero_q_values": 35,
+  "evaluation_seed_start": 10000,
+  "evaluation": {
+    "random": {
+      "success_rate": 0.01,
+      "mean_return": 0.01,
+      "mean_episode_length": 7.535,
+      "episodes": 200
+    },
+    "q_learning": {
+      "success_rate": 1.0,
+      "mean_return": 1.0,
+      "mean_episode_length": 6.0,
+      "episodes": 200
+    }
+  }
+}

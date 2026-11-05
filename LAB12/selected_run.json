@@ -1,0 +1,8 @@
+{
+  "run_id": "fb2aa11e2e4d457db3ef1cf56b57deb4",
+  "name": "forest_depth_3",
+  "accuracy": 1.0,
+  "f1_macro": 1.0,
+  "rule": "max f1_macro; tie-break by accuracy, then name",
+  "tracking_uri": "sqlite:///C:/Users/carlo/Desktop/ModelOps-Machine-Learning/LAB12/mlflow.db"
+}

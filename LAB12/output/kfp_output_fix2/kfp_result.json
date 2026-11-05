@@ -1,0 +1,8 @@
+{
+  "accuracy": 0.9814814814814815,
+  "f1_macro": 0.9828609096901779,
+  "validation_rows": 54,
+  "data_sha256": "552dcc27e6743a87988d63e9a449a9f48ec9b7ed217c09449ffee91228ec26ab",
+  "model_sha256": "a65f0e9fd2463fdf356abb2cd8ba73a218766e2faf0fda2550706b1735695203",
+  "execution": "Fallback local Python execution (KFP subprocess runner unavailable)"
+}

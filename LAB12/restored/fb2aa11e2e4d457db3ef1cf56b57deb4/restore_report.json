@@ -1,0 +1,7 @@
+{
+  "run_id": "fb2aa11e2e4d457db3ef1cf56b57deb4",
+  "restored_accuracy": 1.0,
+  "logged_accuracy": 1.0,
+  "prediction_rows": 54,
+  "model_source": "MLflow artifact store"
+}

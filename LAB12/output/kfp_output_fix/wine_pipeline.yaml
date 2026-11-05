@@ -1,0 +1,277 @@
+# PIPELINE DEFINITION
+# Name: lab12-wine-local
+# Inputs:
+#    data_path: str
+#    regularization: float [Default: 1.0]
+# Outputs:
+#    Output: str
+components:
+  comp-evaluate-model:
+    executorLabel: exec-evaluate-model
+    inputDefinitions:
+      artifacts:
+        contract:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+        validation:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+    outputDefinitions:
+      parameters:
+        Output:
+          parameterType: STRING
+  comp-prepare-data:
+    executorLabel: exec-prepare-data
+    inputDefinitions:
+      parameters:
+        data_path:
+          parameterType: STRING
+    outputDefinitions:
+      artifacts:
+        contract:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+        training:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+        validation:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+  comp-train-model:
+    executorLabel: exec-train-model
+    inputDefinitions:
+      artifacts:
+        contract:
+          artifactType:
+            schemaTitle: system.Artifact
+            schemaVersion: 0.0.1
+        training:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+      parameters:
+        regularization:
+          parameterType: NUMBER_DOUBLE
+    outputDefinitions:
+      artifacts:
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+deploymentSpec:
+  executors:
+    exec-evaluate-model:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - evaluate_model
+        command:
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef evaluate_model(validation: Input[Dataset], model: Input[Model],\
+          \ contract: Input[Artifact]) -> str:\n    import csv\n    import hashlib\n\
+          \    import json\n    import pickle\n    from pathlib import Path\n\n  \
+          \  import numpy as np\n    from sklearn.metrics import accuracy_score, f1_score\n\
+          \n    metadata = json.loads(Path(contract.path).read_text(encoding=\"utf-8\"\
+          ))\n    raw = Path(model.path).read_bytes()\n    bundle = pickle.loads(raw)\n\
+          \    if bundle[\"feature_names\"] != metadata[\"feature_names\"] or bundle[\"\
+          data_sha256\"] != metadata[\"data_sha256\"]:\n        raise ValueError(\"\
+          Model and contract mismatch\")\n\n    with open(validation.path, newline=\"\
+          \", encoding=\"utf-8\") as stream:\n        rows = list(csv.DictReader(stream))\n\
+          \    x = np.asarray([[float(row[col]) for col in metadata[\"feature_names\"\
+          ]] for row in rows])\n    y = np.asarray([int(row[\"target\"]) for row in\
+          \ rows])\n    pred = bundle[\"model\"].predict(x)\n    return json.dumps(\n\
+          \        {\n            \"accuracy\": float(accuracy_score(y, pred)),\n\
+          \            \"f1_macro\": float(f1_score(y, pred, average=\"macro\")),\n\
+          \            \"validation_rows\": len(rows),\n            \"data_sha256\"\
+          : metadata[\"data_sha256\"],\n            \"model_sha256\": hashlib.sha256(raw).hexdigest(),\n\
+          \            \"execution\": \"Kubeflow SDK local SubprocessRunner\",\n \
+          \       }\n    )\n\n"
+        image: python:3.12-slim
+    exec-prepare-data:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - prepare_data
+        command:
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef prepare_data(data_path: str, training: Output[Dataset], validation:\
+          \ Output[Dataset], contract: Output[Artifact]):\n    import csv\n    import\
+          \ hashlib\n    import json\n    import math\n    from pathlib import Path\n\
+          \n    path = Path(data_path)\n    with path.open(newline=\"\", encoding=\"\
+          utf-8\") as stream:\n        reader = csv.DictReader(stream)\n        names\
+          \ = reader.fieldnames or []\n        rows = list(reader)\n\n    if not rows\
+          \ or len(names) != len(set(names)) or not {\"record_id\", \"split\", \"\
+          target\"} <= set(names):\n        raise ValueError(\"Invalid CSV\")\n  \
+          \  features = [name for name in names if name not in {\"record_id\", \"\
+          split\", \"target\"}]\n    if len(features) != 13 or len({row[\"record_id\"\
+          ] for row in rows}) != len(rows):\n        raise ValueError(\"Invalid feature\
+          \ schema or duplicate IDs\")\n    if any(not row[\"record_id\"] for row\
+          \ in rows) or {row[\"split\"] for row in rows} != {\"train\", \"validation\"\
+          }:\n        raise ValueError(\"Unexpected IDs or split values\")\n    if\
+          \ any(not math.isfinite(float(row[col])) for row in rows for col in features):\n\
+          \        raise ValueError(\"Non-finite feature value found\")\n    if any(row[\"\
+          target\"] not in {\"0\", \"1\", \"2\"} for row in rows):\n        raise\
+          \ ValueError(\"Unexpected target class\")\n\n    for artifact, split in\
+          \ [(training, \"train\"), (validation, \"validation\")]:\n        Path(artifact.path).parent.mkdir(parents=True,\
+          \ exist_ok=True)\n        with open(artifact.path, \"w\", newline=\"\",\
+          \ encoding=\"utf-8\") as stream:\n            writer = csv.DictWriter(stream,\
+          \ fieldnames=names)\n            writer.writeheader()\n            writer.writerows([row\
+          \ for row in rows if row[\"split\"] == split])\n\n    metadata = {\n   \
+          \     \"feature_names\": features,\n        \"data_sha256\": hashlib.sha256(path.read_bytes()).hexdigest(),\n\
+          \        \"train_rows\": sum(row[\"split\"] == \"train\" for row in rows),\n\
+          \        \"validation_rows\": sum(row[\"split\"] == \"validation\" for row\
+          \ in rows),\n    }\n    Path(contract.path).parent.mkdir(parents=True, exist_ok=True)\n\
+          \    Path(contract.path).write_text(json.dumps(metadata, indent=2), encoding=\"\
+          utf-8\")\n\n"
+        image: python:3.12-slim
+    exec-train-model:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - train_model
+        command:
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef train_model(training: Input[Dataset], contract: Input[Artifact],\
+          \ regularization: float, model: Output[Model]):\n    import csv\n    import\
+          \ json\n    import pickle\n    from pathlib import Path\n\n    import numpy\
+          \ as np\n    from sklearn.linear_model import LogisticRegression\n    from\
+          \ sklearn.pipeline import make_pipeline\n    from sklearn.preprocessing\
+          \ import StandardScaler\n\n    metadata = json.loads(Path(contract.path).read_text(encoding=\"\
+          utf-8\"))\n    with open(training.path, newline=\"\", encoding=\"utf-8\"\
+          ) as stream:\n        rows = list(csv.DictReader(stream))\n\n    x = np.asarray([[float(row[col])\
+          \ for col in metadata[\"feature_names\"]] for row in rows])\n    y = np.asarray([int(row[\"\
+          target\"]) for row in rows])\n\n    model_pipe = make_pipeline(\n      \
+          \  StandardScaler(),\n        LogisticRegression(C=regularization, max_iter=1000,\
+          \ random_state=42),\n    )\n    model_pipe.fit(x, y)\n\n    bundle = {\n\
+          \        \"model\": model_pipe,\n        \"feature_names\": metadata[\"\
+          feature_names\"],\n        \"data_sha256\": metadata[\"data_sha256\"],\n\
+          \    }\n    Path(model.path).parent.mkdir(parents=True, exist_ok=True)\n\
+          \    Path(model.path).write_bytes(pickle.dumps(bundle))\n\n"
+        image: python:3.12-slim
+pipelineInfo:
+  name: lab12-wine-local
+root:
+  dag:
+    outputs:
+      parameters:
+        Output:
+          valueFromParameter:
+            outputParameterKey: Output
+            producerSubtask: evaluate-model
+    tasks:
+      evaluate-model:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-evaluate-model
+        dependentTasks:
+        - prepare-data
+        - train-model
+        inputs:
+          artifacts:
+            contract:
+              taskOutputArtifact:
+                outputArtifactKey: contract
+                producerTask: prepare-data
+            model:
+              taskOutputArtifact:
+                outputArtifactKey: model
+                producerTask: train-model
+            validation:
+              taskOutputArtifact:
+                outputArtifactKey: validation
+                producerTask: prepare-data
+        taskInfo:
+          name: evaluate-model
+      prepare-data:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-prepare-data
+        inputs:
+          parameters:
+            data_path:
+              componentInputParameter: data_path
+        taskInfo:
+          name: prepare-data
+      train-model:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-train-model
+        dependentTasks:
+        - prepare-data
+        inputs:
+          artifacts:
+            contract:
+              taskOutputArtifact:
+                outputArtifactKey: contract
+                producerTask: prepare-data
+            training:
+              taskOutputArtifact:
+                outputArtifactKey: training
+                producerTask: prepare-data
+          parameters:
+            regularization:
+              componentInputParameter: regularization
+        taskInfo:
+          name: train-model
+  inputDefinitions:
+    parameters:
+      data_path:
+        parameterType: STRING
+      regularization:
+        defaultValue: 1.0
+        isOptional: true
+        parameterType: NUMBER_DOUBLE
+  outputDefinitions:
+    parameters:
+      Output:
+        parameterType: STRING
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.18.0

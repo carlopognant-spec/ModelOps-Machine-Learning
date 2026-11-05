@@ -1,0 +1,33 @@
+{
+  "splits": {
+    "source": 673,
+    "target_train": 674,
+    "test": 450
+  },
+  "seed": 42,
+  "measurements": [
+    {
+      "model": "baseline",
+      "accuracy": 0.09777777777777778,
+      "serialized_bytes": 8168,
+      "median_ms_per_batch": 0.09595000119588803,
+      "batch_size": 32
+    },
+    {
+      "model": "teacher",
+      "accuracy": 0.8022222222222222,
+      "serialized_bytes": 8100,
+      "median_ms_per_batch": 0.09490000047662761,
+      "batch_size": 32
+    },
+    {
+      "model": "student",
+      "accuracy": 0.7133333333333334,
+      "serialized_bytes": 16710,
+      "median_ms_per_batch": 0.11330000052112155,
+      "batch_size": 32
+    }
+  ],
+  "student_fidelity": 0.7,
+  "accuracy_drop_teacher_to_student": 0.0888888888888888
+}
